@@ -89,7 +89,6 @@ export default function StickersPage({ params }: PageProps) {
       setError('');
       setUploadProgress(10);
 
-      // 1. Get presigned URL
       const { uploadUrl, key } = await api<{ ok: boolean; uploadUrl: string; key: string }>(
         `/guilds/${guildId}/stickers/upload-url`,
         {
@@ -100,12 +99,10 @@ export default function StickersPage({ params }: PageProps) {
 
       setUploadProgress(40);
 
-      // 2. Upload file directly to R2 with retry mechanism
       await uploadToR2(uploadUrl, file);
 
       setUploadProgress(70);
 
-      // 3. Save metadata to backend DB
       await api<{ ok: boolean; sticker: Sticker }>(`/guilds/${guildId}/stickers`, {
         method: 'POST',
         body: JSON.stringify({ name: sanitizedName, key, type: file.type }),
