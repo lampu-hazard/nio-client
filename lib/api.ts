@@ -1,4 +1,4 @@
-const API_URL = process.env.BACKEND_URL || 'http://localhost:3002';
+const API_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 export async function api<T>(path: string, init: RequestInit = {}): Promise<T> {
   const isServer = typeof window === 'undefined';
