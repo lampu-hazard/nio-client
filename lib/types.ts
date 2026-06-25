@@ -39,3 +39,13 @@ export type Panel = {
   lastPublishedAt?: string | null;
   roles: PanelRole[];
 };
+
+export type Sticker = {
+  id: string;
+  guildId: string;
+  name: string;
+  url: string;
+  type: string;
+  createdAt: string;
+};
+
