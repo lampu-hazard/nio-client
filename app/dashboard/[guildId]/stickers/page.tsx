@@ -12,10 +12,8 @@ type PageProps = {
 export default function StickersPage({ params }: PageProps) {
   const { guildId } = use(params);
 
-  const [enabled, setEnabled] = useState(false);
   const [stickers, setStickers] = useState<Sticker[]>([]);
   const [loading, setLoading] = useState(true);
-  const [statusLoading, setStatusLoading] = useState(false);
 
   // Form State
   const [name, setName] = useState('');
@@ -31,33 +29,13 @@ export default function StickersPage({ params }: PageProps) {
   const fetchData = async () => {
     try {
       setLoading(true);
-      const [statusRes, stickersRes] = await Promise.all([
-        api<{ ok: boolean; enabled: boolean }>(`/guilds/${guildId}/stickers/status`),
-        api<{ ok: boolean; stickers: Sticker[] }>(`/guilds/${guildId}/stickers`),
-      ]);
-      setEnabled(statusRes.enabled);
-      setStickers(stickersRes.stickers || []);
+      const res = await api<{ ok: boolean; stickers: Sticker[] }>(`/guilds/${guildId}/stickers`);
+      setStickers(res.stickers || []);
       setError('');
     } catch (err: any) {
       setError(err?.message || 'Failed to fetch stickers data');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleToggle = async () => {
-    try {
-      setStatusLoading(true);
-      const nextState = !enabled;
-      const res = await api<{ ok: boolean; enabled: boolean }>(`/guilds/${guildId}/stickers/status`, {
-        method: 'PATCH',
-        body: JSON.stringify({ enabled: nextState }),
-      });
-      setEnabled(res.enabled);
-    } catch (err: any) {
-      setError(err?.message || 'Failed to update sticker status');
-    } finally {
-      setStatusLoading(false);
     }
   };
 
@@ -185,32 +163,6 @@ export default function StickersPage({ params }: PageProps) {
           <div className="grid gap-8 lg:grid-cols-3">
             {/* Left: Settings & Upload */}
             <div className="space-y-6 lg:col-span-1">
-              {/* Feature Toggle Card */}
-              <div className="card p-6">
-                <h2 className="text-lg font-bold mb-4">Sticker Status</h2>
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-semibold">{enabled ? 'Active' : 'Disabled'}</p>
-                    <p className="text-xs text-slate-400 mt-1">
-                      {enabled ? 'Bot will reply to messages' : 'Bot will ignore keywords'}
-                    </p>
-                  </div>
-                  <button
-                    onClick={handleToggle}
-                    disabled={statusLoading}
-                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:outline-none ${
-                      enabled ? 'bg-indigo-500' : 'bg-slate-700'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                        enabled ? 'translate-x-6' : 'translate-x-1'
-                      }`}
-                    />
-                  </button>
-                </div>
-              </div>
-
               {/* Upload Form Card */}
               <div className="card p-6">
                 <h2 className="text-lg font-bold mb-4">Create Sticker</h2>
