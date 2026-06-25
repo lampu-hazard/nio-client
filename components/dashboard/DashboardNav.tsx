@@ -12,6 +12,7 @@ export function DashboardNav({ guildId, activeTab }: DashboardNavProps) {
     { id: 'analytics' as const, label: 'Analytics', href: `/dashboard/${guildId}/analytics` },
     { id: 'audit-logs' as const, label: 'Audit Logs', href: `/dashboard/${guildId}/audit-logs` },
     { id: 'settings' as const, label: 'Settings', href: `/dashboard/${guildId}/settings` },
+    { id: 'stickers' as const, label: 'stickers', href: `/dashboard/${guildId}/stickers`}
   ];
 
   return (
