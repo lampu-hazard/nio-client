@@ -117,16 +117,50 @@ export function PanelForm({
   async function uploadImage(kind: 'banner' | 'thumbnail', file?: File) {
     if (!file) return;
     setState({ loading: false, uploading: kind });
-    const formData = new FormData();
-    formData.set('file', file);
-    formData.set('kind', kind);
+
+    if (file.size > 5 * 1024 * 1024) {
+      setState({ loading: false, error: 'Ukuran gambar maksimal 5 MB' });
+      return;
+    }
 
     try {
-      const response = await fetch('/api/uploads/panel-image', { method: 'POST', body: formData });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.message || 'Gagal upload gambar');
-      patchDraft(kind === 'banner' ? { imageUrl: data.url } : { thumbnailUrl: data.url });
-      setState({ loading: false, success: `${kind === 'banner' ? 'Banner' : 'Thumbnail'} berhasil diupload. Jangan lupa Save Changes.` });
+      // 1. Get presigned upload URL from backend
+      const res = await fetch(`/api/guilds/${guildId}/panels/upload-url`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name, contentType: file.type }),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.message || 'Gagal mendapatkan upload URL');
+
+      const { uploadUrl, url } = data;
+
+      // 2. Direct upload to R2 with simple retry mechanism (3 attempts)
+      let uploadSuccess = false;
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          const uploadRes = await fetch(uploadUrl, {
+            method: 'PUT',
+            body: file,
+            headers: { 'Content-Type': file.type },
+          });
+          if (!uploadRes.ok) throw new Error(`R2 upload status: ${uploadRes.status}`);
+          uploadSuccess = true;
+          break;
+        } catch (err) {
+          if (attempt === 3) throw err;
+          await new Promise((resolve) => setTimeout(resolve, attempt * 1000));
+        }
+      }
+
+      if (!uploadSuccess) throw new Error('Gagal mengupload file ke storage');
+
+      // 3. Update preview & state
+      patchDraft(kind === 'banner' ? { imageUrl: url } : { thumbnailUrl: url });
+      setState({
+        loading: false,
+        success: `${kind === 'banner' ? 'Banner' : 'Thumbnail'} berhasil diupload. Jangan lupa Save Changes.`,
+      });
     } catch (error) {
       setState({ loading: false, error: error instanceof Error ? error.message : 'Gagal upload gambar' });
     }
