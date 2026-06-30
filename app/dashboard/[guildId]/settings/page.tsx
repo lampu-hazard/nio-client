@@ -212,75 +212,109 @@ export default function SettingsPage({ params }: PageProps) {
 
             {/* Slowmode Detailed Settings */}
             {settings.slowmodeEnabled && (
-              <div className="card p-6 space-y-5">
-                <div className="flex items-start justify-between gap-4">
-                  <div>
-                    <h2 className="text-lg font-bold">Auto Slowmode Rules</h2>
-                    <p className="mt-1 text-xs text-slate-400">
-                      Pilih channel yang mau dijaga slowmode otomatis.
-                    </p>
-                  </div>
-                  <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
-                    {settings.slowmodeChannels.length} selected
-                  </span>
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {channels.map((ch) => {
-                    const selected = settings.slowmodeChannels.includes(ch.id);
-                    return (
-                      <button
-                        key={ch.id}
-                        type="button"
-                        onClick={() => toggleSlowmodeChannel(ch.id)}
-                        className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
-                          selected
-                            ? 'border-indigo-500/60 bg-indigo-500/10 text-white'
-                            : 'border-white/10 bg-black/20 text-slate-300 hover:border-white/20 hover:bg-white/5'
-                        }`}
-                      >
-                        <span className="text-sm font-semibold">#{ch.name}</span>
-                        <span
-                          className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
-                            selected ? 'border-indigo-400 bg-indigo-500 text-white' : 'border-slate-600 text-transparent'
-                          }`}
-                        >
-                          ✓
-                        </span>
-                      </button>
-                    );
-                  })}
-                </div>
-
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2">
-                      Sepi
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="0"
-                        value={settings.slowmodeIntervalQuiet}
-                        onChange={(e) => handleIntervalChange('slowmodeIntervalQuiet', e.target.value)}
-                        className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                      />
-                      <span className="text-xs text-slate-400">sec</span>
+              <div className="overflow-hidden rounded-3xl border border-white/10 bg-slate-950/70 shadow-2xl shadow-black/30">
+                <div className="relative border-b border-white/10 bg-[radial-gradient(circle_at_top_left,rgba(16,185,129,0.18),transparent_34%),linear-gradient(135deg,rgba(15,23,42,0.98),rgba(2,6,23,0.92))] p-6">
+                  <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-300/70 to-transparent" />
+                  <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+                    <div>
+                      <p className="text-[11px] font-black uppercase tracking-[0.28em] text-emerald-300/80">
+                        Traffic Guard
+                      </p>
+                      <h2 className="mt-2 text-2xl font-black tracking-tight text-white">
+                        Auto Slowmode
+                      </h2>
+                      <p className="mt-2 max-w-xl text-sm leading-6 text-slate-400">
+                        Pilih channel yang mau dijaga. Bot akan naikin slowmode saat chat rame, lalu turunin lagi waktu suasana sepi.
+                      </p>
+                    </div>
+                    <div className="rounded-2xl border border-emerald-400/20 bg-emerald-400/10 px-4 py-3 text-right">
+                      <p className="text-2xl font-black text-emerald-200">{settings.slowmodeChannels.length}</p>
+                      <p className="text-[11px] font-bold uppercase tracking-[0.18em] text-emerald-300/70">channels</p>
                     </div>
                   </div>
-                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2">
-                      Rame
-                    </label>
-                    <div className="flex items-center gap-2">
-                      <input
-                        type="number"
-                        min="0"
-                        value={settings.slowmodeIntervalBusy}
-                        onChange={(e) => handleIntervalChange('slowmodeIntervalBusy', e.target.value)}
-                        className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                      />
-                      <span className="text-xs text-slate-400">sec</span>
+                </div>
+
+                <div className="space-y-5 p-6">
+                  <div>
+                    <div className="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p className="text-sm font-bold text-white">Protected channels</p>
+                        <p className="text-xs text-slate-500">Tap channel untuk masuk/keluar dari slowmode guard.</p>
+                      </div>
+                      <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs font-semibold text-slate-300">
+                        {settings.slowmodeChannels.length}/{channels.length}
+                      </span>
+                    </div>
+
+                    <div className="grid gap-3 sm:grid-cols-2">
+                      {channels.map((ch) => {
+                        const selected = settings.slowmodeChannels.includes(ch.id);
+                        return (
+                          <button
+                            key={ch.id}
+                            type="button"
+                            aria-pressed={selected}
+                            onClick={() => toggleSlowmodeChannel(ch.id)}
+                            className={`group flex min-h-14 items-center justify-between rounded-2xl border px-4 py-3 text-left transition duration-200 ${
+                              selected
+                                ? 'border-emerald-400/40 bg-emerald-400/10 shadow-lg shadow-emerald-950/40'
+                                : 'border-white/10 bg-white/[0.03] hover:border-slate-500/50 hover:bg-white/[0.06]'
+                            }`}
+                          >
+                            <span>
+                              <span className="block text-sm font-bold text-white">#{ch.name}</span>
+                              <span className="mt-0.5 block text-xs text-slate-500">channel guard</span>
+                            </span>
+                            <span
+                              className={`h-3 w-3 rounded-full ring-4 transition ${
+                                selected
+                                  ? 'bg-emerald-300 ring-emerald-400/20'
+                                  : 'bg-slate-700 ring-slate-700/20 group-hover:bg-slate-500'
+                              }`}
+                            />
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div className="rounded-2xl border border-white/10 bg-white/[0.03] p-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <label className="text-xs font-black uppercase tracking-[0.18em] text-slate-400">
+                          Sepi
+                        </label>
+                        <span className="rounded-full bg-slate-800 px-2 py-1 text-[10px] font-bold text-slate-400">idle</span>
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          value={settings.slowmodeIntervalQuiet}
+                          onChange={(e) => handleIntervalChange('slowmodeIntervalQuiet', e.target.value)}
+                          className="w-full bg-transparent text-4xl font-black tracking-tight text-white outline-none focus:text-emerald-200"
+                        />
+                        <span className="pb-2 text-sm font-bold text-slate-500">sec</span>
+                      </div>
+                    </div>
+
+                    <div className="rounded-2xl border border-emerald-400/20 bg-gradient-to-br from-emerald-400/10 to-cyan-400/5 p-4">
+                      <div className="mb-3 flex items-center justify-between">
+                        <label className="text-xs font-black uppercase tracking-[0.18em] text-emerald-200/80">
+                          Rame
+                        </label>
+                        <span className="rounded-full bg-emerald-400/10 px-2 py-1 text-[10px] font-bold text-emerald-200">busy</span>
+                      </div>
+                      <div className="flex items-end gap-2">
+                        <input
+                          type="number"
+                          min="0"
+                          value={settings.slowmodeIntervalBusy}
+                          onChange={(e) => handleIntervalChange('slowmodeIntervalBusy', e.target.value)}
+                          className="w-full bg-transparent text-4xl font-black tracking-tight text-white outline-none focus:text-emerald-200"
+                        />
+                        <span className="pb-2 text-sm font-bold text-emerald-200/70">sec</span>
+                      </div>
                     </div>
                   </div>
                 </div>
