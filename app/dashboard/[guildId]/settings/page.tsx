@@ -79,12 +79,16 @@ export default function SettingsPage({ params }: PageProps) {
     }));
   };
 
-  const handleSlowmodeChannelsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedOptions = Array.from(e.target.selectedOptions, (opt) => opt.value);
-    setSettings((prev) => ({
-      ...prev,
-      slowmodeChannels: selectedOptions,
-    }));
+  const toggleSlowmodeChannel = (channelId: string) => {
+    setSettings((prev) => {
+      const selected = prev.slowmodeChannels.includes(channelId);
+      return {
+        ...prev,
+        slowmodeChannels: selected
+          ? prev.slowmodeChannels.filter((id) => id !== channelId)
+          : [...prev.slowmodeChannels, channelId],
+      };
+    });
   };
 
   const handleIntervalChange = (field: 'slowmodeIntervalQuiet' | 'slowmodeIntervalBusy', val: string) => {
@@ -208,54 +212,76 @@ export default function SettingsPage({ params }: PageProps) {
 
             {/* Slowmode Detailed Settings */}
             {settings.slowmodeEnabled && (
-              <div className="card p-6 space-y-4">
-                <h2 className="text-lg font-bold">Slowmode Configuration</h2>
+              <div className="card p-6 space-y-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <h2 className="text-lg font-bold">Auto Slowmode Rules</h2>
+                    <p className="mt-1 text-xs text-slate-400">
+                      Pilih channel yang mau dijaga slowmode otomatis.
+                    </p>
+                  </div>
+                  <span className="rounded-full border border-indigo-500/30 bg-indigo-500/10 px-3 py-1 text-xs font-semibold text-indigo-300">
+                    {settings.slowmodeChannels.length} selected
+                  </span>
+                </div>
 
-                <div>
-                  <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                    Monitored Channels
-                  </label>
-                  <select
-                    multiple
-                    value={settings.slowmodeChannels}
-                    onChange={handleSlowmodeChannelsChange}
-                    className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none min-h-[120px]"
-                  >
-                    {channels.map((ch) => (
-                      <option key={ch.id} value={ch.id}>
-                        #{ch.name}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-[10px] text-slate-400 mt-1">
-                    Hold Ctrl (or Cmd) to select multiple channels to be monitored by automatic slowmode.
-                  </p>
+                <div className="grid gap-2 sm:grid-cols-2">
+                  {channels.map((ch) => {
+                    const selected = settings.slowmodeChannels.includes(ch.id);
+                    return (
+                      <button
+                        key={ch.id}
+                        type="button"
+                        onClick={() => toggleSlowmodeChannel(ch.id)}
+                        className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left transition ${
+                          selected
+                            ? 'border-indigo-500/60 bg-indigo-500/10 text-white'
+                            : 'border-white/10 bg-black/20 text-slate-300 hover:border-white/20 hover:bg-white/5'
+                        }`}
+                      >
+                        <span className="text-sm font-semibold">#{ch.name}</span>
+                        <span
+                          className={`flex h-5 w-5 items-center justify-center rounded-full border text-[10px] ${
+                            selected ? 'border-indigo-400 bg-indigo-500 text-white' : 'border-slate-600 text-transparent'
+                          }`}
+                        >
+                          ✓
+                        </span>
+                      </button>
+                    );
+                  })}
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                      Quiet Slowmode (seconds)
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2">
+                      Sepi
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={settings.slowmodeIntervalQuiet}
-                      onChange={(e) => handleIntervalChange('slowmodeIntervalQuiet', e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        value={settings.slowmodeIntervalQuiet}
+                        onChange={(e) => handleIntervalChange('slowmodeIntervalQuiet', e.target.value)}
+                        className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                      />
+                      <span className="text-xs text-slate-400">sec</span>
+                    </div>
                   </div>
-                  <div>
-                    <label className="block text-xs font-bold uppercase text-slate-400 mb-1">
-                      Busy Slowmode (seconds)
+                  <div className="rounded-xl border border-white/10 bg-black/20 p-4">
+                    <label className="block text-xs font-bold uppercase text-slate-400 mb-2">
+                      Rame
                     </label>
-                    <input
-                      type="number"
-                      min="0"
-                      value={settings.slowmodeIntervalBusy}
-                      onChange={(e) => handleIntervalChange('slowmodeIntervalBusy', e.target.value)}
-                      className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
-                    />
+                    <div className="flex items-center gap-2">
+                      <input
+                        type="number"
+                        min="0"
+                        value={settings.slowmodeIntervalBusy}
+                        onChange={(e) => handleIntervalChange('slowmodeIntervalBusy', e.target.value)}
+                        className="w-full rounded-lg border border-white/10 bg-black/20 px-3 py-2 text-sm focus:border-indigo-500 focus:outline-none"
+                      />
+                      <span className="text-xs text-slate-400">sec</span>
+                    </div>
                   </div>
                 </div>
               </div>
